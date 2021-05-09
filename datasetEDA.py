@@ -9,11 +9,12 @@ Created on Thu May  6 19:41:41 2021
 
 #Import relevant libraries
 import pandas as pd
-import numpy as np
-import matplotlib
+#import numpy as np
+#import matplotlib
 import matplotlib.pyplot as plt
-import seaborn as sns
+#import seaborn as sns #already imported in 'processing'
 import missingno #not 1005 sure if we will use this one
+import processingAttributes as processing
 
 #Preliminary Data Processing
 df = pd.read_csv('EmployeeAttrition.csv') #read the file that is in the folder
@@ -23,7 +24,8 @@ print(df.head()) #first 3 entries in the dataframe
 #we have only one value in the column EmployeeCount. We can basically delete it
 df.drop('EmployeeCount', inplace=True, axis=1)
 df.drop('Over18', inplace=True, axis=1) #all employees are assumed to be over18
-df.set_index('EmployeeNumber') #use the employee ID column as index
+df.drop('EmployeeNumber', inplace=True, axis=1) #get rid of the employee ID
+
 
 #Specify our categorical variables as 'category'
 df['Attrition'] = df['Attrition'].astype('category')
@@ -31,6 +33,15 @@ df['BusinessTravel'] = df['BusinessTravel'].astype('category')
 df['Department'] = df['Department'].astype('category')
 df['Gender'] = df['Gender'].astype('category')
 df['OverTime'] = df['OverTime'].astype('category')
+df['EducationField'] = df['EducationField'].astype('category')
+df['JobRole'] = df['JobRole'].astype('category')
+df['MaritalStatus'] = df['MaritalStatus'].astype('category')
+
+
+tempVar = df['Attrition']
+df.drop('Attrition', axis=1,inplace = True)
+df.insert(0, 'Attrition', tempVar) #moving our variable of interest to the first column in the df
+del tempVar #delete the temporary variable to prevent cluttering our workspace
 
 #Checking for null values, empty cells
 if df.isnull().any(axis=None):
@@ -46,16 +57,11 @@ if len(df[df.duplicated()]) > 0:
 else:
     print("No duplicated entries found")
 
-def categorical_eda(df):
-    """Given dataframe, generate EDA of categorical data"""
-    print("To check: Unique count of non-numeric data")
-    print(df.select_dtypes(include=['category']).nunique())
-    # Plot count distribution of categorical data
-    for col in df.select_dtypes(include='category').columns:
-        fig = sns.catplot(x=col, kind="count", data=df)
-        fig.set_xticklabels(rotation=90)
-        plt.show()
+#Define our variable of interest
+VarofInt = 'Attrition' #the name of the column that we will be focusing on
 
-categorical_eda(df)
+#Running the code to get plots and preliminar information
+processing.categorical_eda(df, VarofInt)
 
-sns.catplot(x='Department', kind='count', hue='Attrition', data=df)
+#Selecting the most relevant attritubtes from the dataframe to perform further analysis
+processing.bestFeature(df, VarofInt)
