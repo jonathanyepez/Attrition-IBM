@@ -16,6 +16,8 @@ import matplotlib.pyplot as plt
 import missingno  # not 1005 sure if we will use this one
 import processingAttributes as processing
 from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
 
 # Preliminary Data Processing
 df = pd.read_csv('EmployeeAttrition.csv')  # read the file from the folder
@@ -81,7 +83,7 @@ TargetVar = 'Attrition'  # the name of the column that we will be focusing on
 # Running the code to get plots and preliminar information
 processing.categorical_eda(df_categs, TargetVar)
 # processing.numerical_eda(df)
-
+"""
 # Selecting most relevant features from dataframe to perform further analysis
 try:
     print("Select KBest with Mutual Info Classifier:")
@@ -91,19 +93,39 @@ try:
     print("\nSelect features based on KBest and Chi2:")
     processing.bestFeature_KBest_chi2(df, TargetVar)
 except Exception as e:
-    print(e.message, e.args)
-
+    print(e)
+"""
 # Preparing data for training and testing
 X = df.iloc[:, 1:]
 y = df[TargetVar]  # target column -> i.e. Attrition
-# split into train and test sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33)
 # feature selection
-# what are scores for the features
-"""
-for i in range(len(fs.scores_)):
-    print('Feature %d: %f' % (i, fs.scores_[i]))
-# plot the scores
-plt.bar([i for i in range(len(fs.scores_))], fs.scores_)
-plt.show()
-"""
+
+# Model Training------------------------------
+# fit the model -> Logistic Regression
+
+
+def trainModel(X, y, test_size=0.33):
+    # split into train and test sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33)
+    model = LogisticRegression(solver='lbfgs', max_iter=5000)
+    model.fit(X_train, y_train)
+    # evaluate the model
+    yhat = model.predict(X_test)
+    # evaluate predictions
+    accuracy = accuracy_score(y_test, yhat)
+    print('Accuracy: %.2f' % (accuracy*100))
+
+
+# fit the model -> all features
+print("----------\nUsing all features: ")
+trainModel(X, y)
+
+# fit the model -> chi2 features
+print("----------\nUsing chi2 for selection: ")
+X_trans_chi2 = processing.bestFeature_KBest_chi2(df, TargetVar)
+trainModel(X_trans_chi2, y)
+
+# fit the model -> mutual information features
+print("----------\nUsing mutual information selection: ")
+X_trans_mutual = processing.bestFeature_MutualInfoClassif(df, TargetVar)
+trainModel(X_trans_mutual, y)

@@ -41,27 +41,31 @@ def bestFeature_MutualInfoClassif(df, VarOfInt):
     X = df.iloc[:, 1:]
     y = df[VarOfInt]  # target column -> i.e. Attrition
     score_func = partial(mutual_info_classif)
-    bestfeatures = SelectKBest(score_func, k=10)
+    bestfeatures = SelectKBest(score_func, k=5)  # was k=10
     fit = bestfeatures.fit(X, y)
+    X_fs = bestfeatures.transform(X)
     dfscores = pd.DataFrame(fit.scores_)
     dfcolumns = pd.DataFrame(X.columns)
     # concat two dataframes for better visualization
     featureScores = pd.concat([dfcolumns, dfscores], axis=1)
     featureScores.columns = ['Specs', 'Score']  # naming the dataframe columns
-    print(featureScores.nlargest(10, 'Score'))  # print 10 best features
+    print(featureScores.nlargest(5, 'Score'))  # print 5 best features
+    return X_fs
 
 
 def bestFeature_KBest_chi2(df, VarOfInt):
     X = df.iloc[:, 1:]
     y = df[VarOfInt]
-    fs = SelectKBest(score_func=chi2, k='all')
+    fs = SelectKBest(score_func=chi2, k=5)  # was k=10
     fit = fs.fit(X, y)
+    X_fs = fs.transform(X)
     dfscores = pd.DataFrame(fit.scores_)
     dfcolumns = pd.DataFrame(X.columns)
     # concat two dataframes for better visualization
     featureScores = pd.concat([dfcolumns, dfscores], axis=1)
     featureScores.columns = ['Specs', 'Score']  # naming the dataframe columns
-    print(featureScores.nlargest(10, 'Score'))  # print 10 best features
+    print(featureScores.nlargest(5, 'Score'))  # print 5 best features
+    return X_fs
 
 
 def bestFeature_ExtraTreesClassif(df, VarOfInt):
@@ -69,9 +73,11 @@ def bestFeature_ExtraTreesClassif(df, VarOfInt):
     y = df[VarOfInt]  # target column i.e price range
     model = ExtraTreesClassifier()
     model.fit(X, y)
+    # X_fs = model.transform(X)
     print(model.feature_importances_)
     # inbuilt class feature_importances-tree classifiers
     # plot graph of feature importances for better visualization
     feat_importances = pd.Series(model.feature_importances_, index=X.columns)
     feat_importances.nlargest(10).plot(kind='barh')
     plt.show()
+    # return X_fs
